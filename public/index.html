@@ -101,7 +101,7 @@
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: opacity 0.2s;
+            transition: all 0.2s;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -110,17 +110,38 @@
 
         .watch-ad-btn:hover {
             opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .watch-ad-btn:active {
+            transform: translateY(0);
         }
 
         .watch-ad-btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
+            transform: none;
         }
 
         .loading {
             text-align: center;
             padding: 40px;
             font-size: 18px;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: var(--tg-theme-button-color, #3390ec);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 16px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
 
         .error {
@@ -130,9 +151,35 @@
             border-radius: 8px;
             margin-bottom: 16px;
             display: none;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .error.show {
+            display: block;
+        }
+
+        .success {
+            background: #00c851;
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+
+        .success.show {
             display: block;
         }
 
@@ -148,24 +195,60 @@
             padding: 16px;
             border-radius: 8px;
             text-align: center;
+            transition: transform 0.2s;
+        }
+
+        .stat-item:hover {
+            transform: translateY(-2px);
         }
 
         .stat-value {
             font-size: 24px;
             font-weight: bold;
             margin-bottom: 4px;
+            color: #667eea;
         }
 
         .stat-label {
             font-size: 12px;
             opacity: 0.6;
         }
+
+        .reward-animation {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 80px;
+            animation: rewardPop 0.6s ease;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        @keyframes rewardPop {
+            0% {
+                transform: translate(-50%, -50%) scale(0);
+                opacity: 0;
+            }
+            50% {
+                transform: translate(-50%, -50%) scale(1.2);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 0;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <div id="loading" class="loading">Загрузка...</div>
+        <div id="loading" class="loading">
+            <div class="loading-spinner"></div>
+            <div>Загрузка профиля...</div>
+        </div>
         <div id="error" class="error"></div>
+        <div id="success" class="success"></div>
         
         <div id="app" style="display: none;">
             <div class="profile-card">
@@ -187,7 +270,7 @@
 
                 <button id="watchAdBtn" class="watch-ad-btn">
                     <span>📺</span>
-                    Смотреть рекламу (+1 ⭐)
+                    <span>Смотреть рекламу (+1 ⭐)</span>
                 </button>
 
                 <div class="stats">
@@ -205,14 +288,13 @@
     </div>
 
     <script>
-        // Используйте переменную окружения для API URL или localhost по умолчанию
+        // API URL - автоматически определяется
         const API_URL = window.location.hostname === 'localhost' 
             ? 'http://localhost:3000/api'
             : '/api';
         
         let tg = window.Telegram.WebApp;
         let user = null;
-        let AdSonarSDK = null;
 
         // Инициализация Telegram WebApp
         tg.ready();
@@ -221,11 +303,32 @@
         // Функция для показа ошибок
         function showError(message) {
             const errorEl = document.getElementById('error');
-            errorEl.textContent = message;
+            errorEl.textContent = '❌ ' + message;
             errorEl.classList.add('show');
             setTimeout(() => {
                 errorEl.classList.remove('show');
             }, 5000);
+        }
+
+        // Функция для показа успеха
+        function showSuccess(message) {
+            const successEl = document.getElementById('success');
+            successEl.textContent = '✅ ' + message;
+            successEl.classList.add('show');
+            setTimeout(() => {
+                successEl.classList.remove('show');
+            }, 3000);
+        }
+
+        // Анимация награды
+        function showRewardAnimation() {
+            const reward = document.createElement('div');
+            reward.className = 'reward-animation';
+            reward.textContent = '+1 ⭐';
+            document.body.appendChild(reward);
+            setTimeout(() => {
+                reward.remove();
+            }, 600);
         }
 
         // Загрузка профиля пользователя
@@ -237,6 +340,8 @@
                 const userId = telegramUser?.id || 123456789;
                 const firstName = telegramUser?.first_name || 'Тестовый';
                 const lastName = telegramUser?.last_name || 'Пользователь';
+
+                console.log('📡 Загрузка профиля для:', userId);
 
                 const response = await fetch(`${API_URL}/profile`, {
                     method: 'POST',
@@ -251,10 +356,12 @@
                 });
 
                 if (!response.ok) {
-                    throw new Error('Ошибка загрузки профиля');
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
 
                 user = await response.json();
+                console.log('✅ Профиль загружен:', user);
+                
                 displayProfile(user);
                 
                 document.getElementById('loading').style.display = 'none';
@@ -263,9 +370,9 @@
                 // Инициализация AdSonar
                 initAdSonar();
             } catch (error) {
-                console.error('Error loading profile:', error);
-                showError('Ошибка загрузки профиля');
-                document.getElementById('loading').textContent = 'Ошибка загрузки';
+                console.error('❌ Ошибка загрузки профиля:', error);
+                showError('Ошибка загрузки профиля: ' + error.message);
+                document.getElementById('loading').innerHTML = '<div>❌ Ошибка загрузки</div><div style="font-size: 12px; margin-top: 10px;">Проверьте консоль для деталей</div>';
             }
         }
 
@@ -274,13 +381,15 @@
             const fullName = `${userData.first_name} ${userData.last_name || ''}`.trim();
             document.getElementById('userName').textContent = fullName;
             document.getElementById('userId').textContent = userData.telegram_id;
-            document.getElementById('balance').textContent = userData.balance;
-            document.getElementById('adsWatched').textContent = userData.ads_watched;
-            document.getElementById('totalEarned').textContent = userData.balance;
+            document.getElementById('balance').textContent = userData.balance || 0;
+            document.getElementById('adsWatched').textContent = userData.ads_watched || 0;
+            document.getElementById('totalEarned').textContent = userData.balance || 0;
             
             // Аватар с первой буквой имени
             const firstLetter = userData.first_name.charAt(0).toUpperCase();
             document.getElementById('avatar').textContent = firstLetter;
+
+            console.log('✅ Профиль отображён');
         }
 
         // Инициализация AdSonar
@@ -289,15 +398,13 @@
             const ADSONAR_BLOCK_ID = 'YOUR_ADSONAR_BLOCK_ID';
             
             try {
-                // Инициализация AdSonar SDK
                 if (window.AdController) {
-                    AdSonarSDK = window.AdController;
-                    console.log('AdSonar SDK инициализирован');
+                    console.log('✅ AdSonar SDK загружен');
                 } else {
-                    console.warn('AdSonar SDK не загружен');
+                    console.warn('⚠️ AdSonar SDK не загружен, используется тестовый режим');
                 }
             } catch (error) {
-                console.error('Ошибка инициализации AdSonar:', error);
+                console.error('❌ Ошибка инициализации AdSonar:', error);
             }
         }
 
@@ -305,36 +412,53 @@
         async function watchAd() {
             const btn = document.getElementById('watchAdBtn');
             btn.disabled = true;
-            btn.textContent = 'Загрузка рекламы...';
+            btn.innerHTML = '<span>⏳</span><span>Загрузка рекламы...</span>';
 
             try {
-                // ВАЖНО: Замените на ваш Block ID
                 const ADSONAR_BLOCK_ID = 'YOUR_ADSONAR_BLOCK_ID';
 
                 if (window.AdController) {
-                    // Показываем рекламу через AdSonar
+                    console.log('📺 Показываем рекламу через AdSonar...');
+                    
                     window.AdController.show({
                         blockId: ADSONAR_BLOCK_ID,
                         onReward: async () => {
-                            // Реклама успешно просмотрена
+                            console.log('✅ Реклама просмотрена, начисляем награду');
                             await handleAdReward();
                         },
                         onClose: () => {
-                            // Реклама закрыта
+                            console.log('❌ Реклама закрыта');
                             btn.disabled = false;
-                            btn.innerHTML = '<span>📺</span> Смотреть рекламу (+1 ⭐)';
+                            btn.innerHTML = '<span>📺</span><span>Смотреть рекламу (+1 ⭐)</span>';
+                        },
+                        onError: (error) => {
+                            console.error('❌ AdSonar error:', error);
+                            showError('Реклама недоступна. Попробуйте позже.');
+                            btn.disabled = false;
+                            btn.innerHTML = '<span>📺</span><span>Смотреть рекламу (+1 ⭐)</span>';
+                        }
+                    });
+                } else {
+                    // Симуляция для тестирования без AdSonar
+                    console.log('🧪 Тестовый режим: симуляция просмотра рекламы');
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    await handleAdReward();
+                    btn.disabled = false;
+                    btn.innerHTML = '<span>📺</span><span>Смотреть рекламу (+1 ⭐)</span>';
                 }
             } catch (error) {
-                console.error('Error watching ad:', error);
-                showError('Ошибка при просмотре рекламы');
+                console.error('❌ Ошибка при просмотре рекламы:', error);
+                showError('Ошибка при просмотре рекламы: ' + error.message);
                 btn.disabled = false;
-                btn.innerHTML = '<span>📺</span> Смотреть рекламу (+1 ⭐)';
+                btn.innerHTML = '<span>📺</span><span>Смотреть рекламу (+1 ⭐)</span>';
             }
         }
 
         // Обработка награды за рекламу
         async function handleAdReward() {
             try {
+                console.log('💰 Начисляем награду для:', user.telegram_id);
+
                 const response = await fetch(`${API_URL}/watch-ad`, {
                     method: 'POST',
                     headers: {
@@ -346,18 +470,26 @@
                 });
 
                 if (!response.ok) {
-                    throw new Error('Ошибка начисления награды');
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
 
                 const updatedUser = await response.json();
+                console.log('✅ Награда начислена:', updatedUser);
+                
                 user = updatedUser;
                 displayProfile(user);
                 
+                // Показываем анимацию
+                showRewardAnimation();
+                showSuccess('Поздравляем! Вы получили 1 ⭐');
+                
                 // Показываем уведомление в Telegram
-                tg.showAlert('Поздравляем! Вы получили 1 ⭐');
+                if (tg.showAlert) {
+                    tg.showAlert('🎉 Поздравляем! Вы получили 1 ⭐');
+                }
             } catch (error) {
-                console.error('Error handling ad reward:', error);
-                showError('Ошибка начисления награды');
+                console.error('❌ Ошибка начисления награды:', error);
+                showError('Ошибка начисления награды: ' + error.message);
             }
         }
 
@@ -367,14 +499,19 @@
         // Загрузка AdSonar SDK
         // ВАЖНО: Свяжитесь с @adsonar_manager в Telegram для получения SDK
         const adsScript = document.createElement('script');
-        adsScript.src = 'https://ad.adsonar.co/sdk.js'; // Пример URL, уточните актуальный
+        adsScript.src = 'https://ad.adsonar.co/sdk.js'; // Уточните актуальный URL
         adsScript.async = true;
+        adsScript.onload = () => {
+            console.log('✅ AdSonar SDK загружен');
+        };
         adsScript.onerror = () => {
-            console.warn('AdSonar SDK не загружен, используется тестовый режим');
+            console.warn('⚠️ AdSonar SDK не загружен, используется тестовый режим');
         };
         document.head.appendChild(adsScript);
 
         // Инициализация приложения
+        console.log('🚀 Инициализация приложения...');
+        console.log('📍 API URL:', API_URL);
         loadProfile();
     </script>
 </body>
