@@ -45,7 +45,7 @@ const FREE_PRIZES = [
     {id: 4, name: 'Moon Rocket', image: 'https://img.icons8.com/fluency/96/rocket.png', chance: 4},
     {id: 5, name: 'Diamond Hand', image: 'https://i.postimg.cc/85LHwm8W/Original-3.png', chance: 4},
     {id: 6, name: 'Gold Coin', image: 'https://i.postimg.cc/B65T2ZDK/Original-1.png', chance: 5},
-    {id: 7, name: 'Lucky Clover', image: 'https://img.icons8.com/fluency/96/four-leaf-clover.png', chance: 5},
+    {id: 7, name: 'Lucky Clover', image: 'https://i.postimg.cc/HkZdsbhs/IMG-20251108-095023-172.jpg', chance: 5},
     {id: 8, name: 'Magic Wand', image: 'https://i.postimg.cc/02yYJsNf/Original-2.png', chance: 5},
     {id: 9, name: 'Crown', image: 'https://img.icons8.com/fluency/96/crown.png', chance: 5},
     {id: 10, name: 'Fire', image: 'https://i.postimg.cc/sXzSfF8z/Original.png', chance: 5},
