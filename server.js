@@ -1,4 +1,3 @@
-// server.js
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -7,56 +6,59 @@ const fs = require('fs');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware
-app.use(cors());
+app.use(cors({
+    origin: '*',
+    methods: ['GET', 'POST', 'OPTIONS'],
+    allowedHeaders: ['Content-Type']
+}));
+
 app.use(express.json());
 app.use(express.static('public'));
 
-// Путь к файлу базы данных
 const DB_PATH = process.env.DB_PATH || path.join(__dirname, 'database.json');
-
-// Инициализация базы данных
-let db = { users: {}, adHistory: [] };
+let db = { users: {}, caseHistory: [] };
 
 function loadDatabase() {
     try {
         if (fs.existsSync(DB_PATH)) {
             const data = fs.readFileSync(DB_PATH, 'utf8');
             db = JSON.parse(data);
-            console.log('✅ База данных загружена');
+            console.log('✅ База загружена:', Object.keys(db.users).length, 'пользователей');
         } else {
             saveDatabase();
-            console.log('✅ Создана новая база данных');
+            console.log('✅ Создана новая база');
         }
     } catch (err) {
         console.error('❌ Ошибка загрузки БД:', err);
-        db = { users: {}, adHistory: [] };
+        db = { users: {}, caseHistory: [] };
     }
 }
 
 function saveDatabase() {
     try {
         fs.writeFileSync(DB_PATH, JSON.stringify(db, null, 2));
+        console.log('💾 База сохранена');
     } catch (err) {
         console.error('❌ Ошибка сохранения БД:', err);
     }
 }
 
-// Загружаем БД при старте
 loadDatabase();
 
 // Health check
 app.get('/health', (req, res) => {
+    console.log('📊 Health check');
     res.status(200).json({ 
         status: 'ok', 
         timestamp: new Date().toISOString(),
         users: Object.keys(db.users).length,
-        ads: db.adHistory.length
+        cases: db.caseHistory.length
     });
 });
 
-// API: Получить или создать профиль
+// Profile
 app.post('/api/profile', (req, res) => {
+    console.log('📝 POST /api/profile:', req.body);
     const { telegram_id, first_name, last_name } = req.body;
 
     if (!telegram_id || !first_name) {
@@ -67,22 +69,22 @@ app.post('/api/profile', (req, res) => {
         const userId = String(telegram_id);
         
         if (db.users[userId]) {
-            // Обновляем last_active
             db.users[userId].last_active = new Date().toISOString();
             saveDatabase();
+            console.log('✅ Пользователь найден:', userId);
             return res.json(db.users[userId]);
         } else {
-            // Создаём нового пользователя
             db.users[userId] = {
                 telegram_id: telegram_id,
                 first_name: first_name,
                 last_name: last_name || '',
                 balance: 0,
-                ads_watched: 0,
+                cases_opened: 0,
                 created_at: new Date().toISOString(),
                 last_active: new Date().toISOString()
             };
             saveDatabase();
+            console.log('✅ Новый пользователь создан:', userId);
             return res.status(201).json(db.users[userId]);
         }
     } catch (error) {
@@ -91,12 +93,13 @@ app.post('/api/profile', (req, res) => {
     }
 });
 
-// API: Просмотр рекламы
-app.post('/api/watch-ad', (req, res) => {
-    const { telegram_id } = req.body;
+// Open case
+app.post('/api/open-case', (req, res) => {
+    console.log('🎁 POST /api/open-case:', req.body);
+    const { telegram_id, case_id, price, reward } = req.body;
 
-    if (!telegram_id) {
-        return res.status(400).json({ error: 'Telegram ID обязателен' });
+    if (!telegram_id || !case_id) {
+        return res.status(400).json({ error: 'Telegram ID и case_id обязательны' });
     }
 
     try {
@@ -106,31 +109,38 @@ app.post('/api/watch-ad', (req, res) => {
             return res.status(404).json({ error: 'Пользователь не найден' });
         }
 
-        const reward = 1;
-        
-        // Обновляем баланс
-        db.users[userId].balance += reward;
-        db.users[userId].ads_watched += 1;
+        // Проверка баланса
+        if (price > db.users[userId].balance) {
+            return res.status(400).json({ error: 'Недостаточно средств' });
+        }
+
+        // Списываем стоимость и добавляем награду
+        db.users[userId].balance = db.users[userId].balance - price + reward;
+        db.users[userId].cases_opened = (db.users[userId].cases_opened || 0) + 1;
         db.users[userId].last_active = new Date().toISOString();
         
         // Добавляем в историю
-        db.adHistory.push({
+        db.caseHistory.push({
             telegram_id: telegram_id,
+            case_id: case_id,
+            price: price,
             reward: reward,
-            watched_at: new Date().toISOString()
+            opened_at: new Date().toISOString()
         });
         
         saveDatabase();
+        console.log('✅ Кейс открыт:', userId, case_id);
         
         return res.json(db.users[userId]);
     } catch (error) {
-        console.error('❌ Ошибка в /api/watch-ad:', error);
-        return res.status(500).json({ error: 'Ошибка начисления награды' });
+        console.error('❌ Ошибка в /api/open-case:', error);
+        return res.status(500).json({ error: 'Ошибка открытия кейса' });
     }
 });
 
-// API: Статистика пользователя
+// Stats
 app.get('/api/stats/:telegram_id', (req, res) => {
+    console.log('📊 GET /api/stats:', req.params.telegram_id);
     const { telegram_id } = req.params;
     const userId = String(telegram_id);
 
@@ -139,13 +149,15 @@ app.get('/api/stats/:telegram_id', (req, res) => {
             return res.status(404).json({ error: 'Пользователь не найден' });
         }
 
-        const userAds = db.adHistory.filter(ad => String(ad.telegram_id) === userId);
-        const totalRewards = userAds.reduce((sum, ad) => sum + ad.reward, 0);
+        const userCases = db.caseHistory.filter(c => String(c.telegram_id) === userId);
+        const totalRewards = userCases.reduce((sum, c) => sum + c.reward, 0);
+        const totalSpent = userCases.reduce((sum, c) => sum + c.price, 0);
 
         return res.json({
             ...db.users[userId],
-            total_ads: userAds.length,
-            total_rewards: totalRewards
+            total_cases: userCases.length,
+            total_rewards: totalRewards,
+            total_spent: totalSpent
         });
     } catch (error) {
         console.error('❌ Ошибка в /api/stats:', error);
@@ -153,44 +165,25 @@ app.get('/api/stats/:telegram_id', (req, res) => {
     }
 });
 
-// API: История просмотров
-app.get('/api/ad-history/:telegram_id', (req, res) => {
-    const { telegram_id } = req.params;
-    const limit = parseInt(req.query.limit) || 10;
-    const userId = String(telegram_id);
-
-    try {
-        const history = db.adHistory
-            .filter(ad => String(ad.telegram_id) === userId)
-            .slice(-limit)
-            .reverse();
-
-        return res.json(history);
-    } catch (error) {
-        console.error('❌ Ошибка в /api/ad-history:', error);
-        return res.status(500).json({ error: 'Ошибка сервера' });
-    }
-});
-
-// Корневой маршрут
+// Root
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Запуск сервера
+// Start
 app.listen(PORT, '0.0.0.0', () => {
     console.log('🚀 Сервер запущен на порту', PORT);
-    console.log('📱 URL: http://localhost:' + PORT);
+    console.log('📍 https://one-production-9063.up.railway.app');
     console.log('👥 Пользователей:', Object.keys(db.users).length);
 });
 
-// Graceful shutdown
+// Shutdown
 process.on('SIGINT', shutdown);
 process.on('SIGTERM', shutdown);
 
 function shutdown() {
-    console.log('\n🛑 Завершение работы...');
+    console.log('\n🛑 Завершение...');
     saveDatabase();
-    console.log('✅ База данных сохранена');
+    console.log('✅ База сохранена');
     process.exit(0);
-    }
+                            }
