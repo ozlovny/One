@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rewards App</title>
+    <title>Cases App</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         * {
@@ -13,114 +13,121 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: var(--tg-theme-bg-color, #ffffff);
-            color: var(--tg-theme-text-color, #000000);
-            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--tg-theme-bg-color, #0f0f0f);
+            color: var(--tg-theme-text-color, #ffffff);
+            padding: 16px;
+            padding-bottom: 80px;
             min-height: 100vh;
         }
 
-        .container {
-            max-width: 500px;
-            margin: 0 auto;
-        }
-
-        .profile-card {
-            background: var(--tg-theme-secondary-bg-color, #f0f0f0);
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            padding: 16px;
+            background: var(--tg-theme-secondary-bg-color, rgba(255,255,255,0.05));
             border-radius: 16px;
-            padding: 24px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
-        .profile-header {
+        .balance {
             display: flex;
             align-items: center;
-            gap: 16px;
-            margin-bottom: 20px;
-        }
-
-        .avatar {
-            width: 64px;
-            height: 64px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 28px;
-            font-weight: bold;
-            color: white;
-        }
-
-        .profile-info h2 {
-            font-size: 20px;
-            margin-bottom: 4px;
-        }
-
-        .user-id {
-            font-size: 12px;
-            opacity: 0.6;
-        }
-
-        .balance-section {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 12px;
-            padding: 20px;
-            text-align: center;
-            color: white;
-            margin-bottom: 16px;
-        }
-
-        .balance-label {
-            font-size: 14px;
-            opacity: 0.9;
-            margin-bottom: 8px;
-        }
-
-        .balance-amount {
-            font-size: 48px;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             gap: 8px;
+            font-size: 24px;
+            font-weight: bold;
         }
 
         .star-icon {
-            font-size: 40px;
+            font-size: 28px;
         }
 
-        .watch-ad-btn {
-            width: 100%;
-            padding: 16px;
-            background: var(--tg-theme-button-color, #3390ec);
-            color: var(--tg-theme-button-text-color, #ffffff);
-            border: none;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
+        .avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--tg-theme-button-color, #3390ec) 0%, #667eea 100%);
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            font-size: 20px;
+            font-weight: bold;
+            color: white;
         }
 
-        .watch-ad-btn:hover {
-            opacity: 0.9;
-            transform: translateY(-1px);
+        .cases-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
         }
 
-        .watch-ad-btn:active {
-            transform: translateY(0);
+        .case-card {
+            background: var(--tg-theme-secondary-bg-color, rgba(255,255,255,0.05));
+            border-radius: 16px;
+            padding: 16px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.2s;
         }
 
-        .watch-ad-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
+        .case-card:active {
+            transform: scale(0.98);
+        }
+
+        .case-image {
+            width: 100%;
+            height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 64px;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
+            border-radius: 12px;
+        }
+
+        .case-name {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--tg-theme-text-color, #ffffff);
+        }
+
+        .case-price {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            background: var(--tg-theme-button-color, #3390ec);
+            color: var(--tg-theme-button-text-color, #ffffff);
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .case-timer {
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--tg-theme-hint-color, #aaaaaa);
+        }
+
+        .free-badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: linear-gradient(135deg, #00c853 0%, #00e676 100%);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: bold;
         }
 
         .loading {
@@ -133,7 +140,7 @@
             display: inline-block;
             width: 40px;
             height: 40px;
-            border: 4px solid rgba(0, 0, 0, 0.1);
+            border: 4px solid rgba(255, 255, 255, 0.1);
             border-left-color: var(--tg-theme-button-color, #3390ec);
             border-radius: 50%;
             animation: spin 1s linear infinite;
@@ -144,74 +151,34 @@
             to { transform: rotate(360deg); }
         }
 
-        .error {
-            background: #ff4444;
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--tg-theme-button-color, #3390ec);
             color: white;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 16px;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            z-index: 1000;
             display: none;
-            animation: slideIn 0.3s ease;
+            animation: slideDown 0.3s ease;
         }
 
-        @keyframes slideIn {
+        @keyframes slideDown {
             from {
                 opacity: 0;
-                transform: translateY(-10px);
+                transform: translate(-50%, -20px);
             }
             to {
                 opacity: 1;
-                transform: translateY(0);
+                transform: translate(-50%, 0);
             }
         }
 
-        .error.show {
+        .notification.show {
             display: block;
-        }
-
-        .success {
-            background: #00c851;
-            color: white;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 16px;
-            display: none;
-            animation: slideIn 0.3s ease;
-        }
-
-        .success.show {
-            display: block;
-        }
-
-        .stats {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-top: 16px;
-        }
-
-        .stat-item {
-            background: var(--tg-theme-bg-color, #ffffff);
-            padding: 16px;
-            border-radius: 8px;
-            text-align: center;
-            transition: transform 0.2s;
-        }
-
-        .stat-item:hover {
-            transform: translateY(-2px);
-        }
-
-        .stat-value {
-            font-size: 24px;
-            font-weight: bold;
-            margin-bottom: 4px;
-            color: #667eea;
-        }
-
-        .stat-label {
-            font-size: 12px;
-            opacity: 0.6;
         }
 
         .reward-animation {
@@ -239,152 +206,247 @@
                 opacity: 0;
             }
         }
-
-        .debug-info {
-            background: #f0f0f0;
-            padding: 10px;
-            border-radius: 8px;
-            margin-bottom: 16px;
-            font-size: 12px;
-            font-family: monospace;
-        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div id="loading" class="loading">
-            <div class="loading-spinner"></div>
-            <div>Загрузка профиля...</div>
-        </div>
-        <div id="error" class="error"></div>
-        <div id="success" class="success"></div>
-        
-        <div id="app" style="display: none;">
-            <div class="debug-info" id="debugInfo"></div>
-            
-            <div class="profile-card">
-                <div class="profile-header">
-                    <div class="avatar" id="avatar">U</div>
-                    <div class="profile-info">
-                        <h2 id="userName">Пользователь</h2>
-                        <div class="user-id">ID: <span id="userId"></span></div>
-                    </div>
-                </div>
+    <div id="loading" class="loading">
+        <div class="loading-spinner"></div>
+        <div>Загрузка...</div>
+    </div>
 
-                <div class="balance-section">
-                    <div class="balance-label">Ваш баланс</div>
-                    <div class="balance-amount">
-                        <span id="balance">0</span>
-                        <span class="star-icon">⭐</span>
-                    </div>
-                </div>
-
-                <button id="watchAdBtn" class="watch-ad-btn">
-                    <span>📺</span>
-                    <span>Смотреть рекламу (+1 ⭐)</span>
-                </button>
-
-                <div class="stats">
-                    <div class="stat-item">
-                        <div class="stat-value" id="adsWatched">0</div>
-                        <div class="stat-label">Реклам просмотрено</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value" id="totalEarned">0</div>
-                        <div class="stat-label">Всего заработано</div>
-                    </div>
-                </div>
+    <div id="notification" class="notification"></div>
+    
+    <div id="app" style="display: none;">
+        <div class="header">
+            <div class="balance">
+                <span id="balance">0</span>
+                <span class="star-icon">⭐</span>
             </div>
+            <div class="avatar" id="avatar">U</div>
         </div>
+
+        <div class="cases-grid" id="casesGrid"></div>
     </div>
 
     <script>
-        // ТВОЙ RAILWAY URL
         const RAILWAY_API_URL = 'https://one-production-9063.up.railway.app/api';
         
-        // Определяем API URL
         function getApiUrl() {
             const hostname = window.location.hostname;
-            
-            // Если запущено локально - используем localhost
             if (hostname === 'localhost' || hostname === '127.0.0.1') {
                 return 'http://localhost:3000/api';
             }
-            
-            // Для всех остальных случаев (включая Netlify/Vercel/etc) - используем Railway
             return RAILWAY_API_URL;
         }
         
         const API_URL = getApiUrl();
-        
         let tg = window.Telegram.WebApp;
         let user = null;
+        let timers = {};
 
-        // Инициализация Telegram WebApp
         tg.ready();
         tg.expand();
 
-        // Debug info
-        function updateDebugInfo() {
-            const debugEl = document.getElementById('debugInfo');
-            if (debugEl) {
-                debugEl.innerHTML = `
-                    <strong>Debug Info:</strong><br>
-                    API URL: ${API_URL}<br>
-                    Hostname: ${window.location.hostname}<br>
-                    Protocol: ${window.location.protocol}
-                `;
+        // Cases данные
+        const cases = [
+            {
+                id: 'free',
+                name: 'Free Box',
+                emoji: '🎁',
+                price: 0,
+                isFree: true,
+                cooldown: 8 * 60 * 60 * 1000, // 8 часов в миллисекундах
+                reward: 1
+            },
+            {
+                id: 'basic',
+                name: 'Basic Case',
+                emoji: '📦',
+                price: 50,
+                isFree: false,
+                reward: 10
+            },
+            {
+                id: 'premium',
+                name: 'Premium Case',
+                emoji: '💎',
+                price: 150,
+                isFree: false,
+                reward: 35
+            },
+            {
+                id: 'legendary',
+                name: 'Legendary Case',
+                emoji: '👑',
+                price: 300,
+                isFree: false,
+                reward: 80
             }
-        }
+        ];
 
-        // Функция для показа ошибок
-        function showError(message) {
-            const errorEl = document.getElementById('error');
-            errorEl.textContent = '❌ ' + message;
-            errorEl.classList.add('show');
+        function showNotification(message) {
+            const notif = document.getElementById('notification');
+            notif.textContent = message;
+            notif.classList.add('show');
             setTimeout(() => {
-                errorEl.classList.remove('show');
-            }, 5000);
-        }
-
-        // Функция для показа успеха
-        function showSuccess(message) {
-            const successEl = document.getElementById('success');
-            successEl.textContent = '✅ ' + message;
-            successEl.classList.add('show');
-            setTimeout(() => {
-                successEl.classList.remove('show');
+                notif.classList.remove('show');
             }, 3000);
         }
 
-        // Анимация награды
-        function showRewardAnimation() {
-            const reward = document.createElement('div');
-            reward.className = 'reward-animation';
-            reward.textContent = '+1 ⭐';
-            document.body.appendChild(reward);
+        function showRewardAnimation(reward) {
+            const anim = document.createElement('div');
+            anim.className = 'reward-animation';
+            anim.textContent = `+${reward} ⭐`;
+            document.body.appendChild(anim);
             setTimeout(() => {
-                reward.remove();
+                anim.remove();
             }, 600);
         }
 
-        // Загрузка профиля пользователя
+        function formatTime(ms) {
+            const hours = Math.floor(ms / (60 * 60 * 1000));
+            const minutes = Math.floor((ms % (60 * 60 * 1000)) / (60 * 1000));
+            const seconds = Math.floor((ms % (60 * 1000)) / 1000);
+            return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }
+
+        function updateTimer(caseId) {
+            const lastOpen = localStorage.getItem(`case_${caseId}_last_open`);
+            if (!lastOpen) return null;
+
+            const lastOpenTime = parseInt(lastOpen);
+            const now = Date.now();
+            const caseData = cases.find(c => c.id === caseId);
+            const cooldown = caseData.cooldown;
+            const elapsed = now - lastOpenTime;
+
+            if (elapsed >= cooldown) {
+                localStorage.removeItem(`case_${caseId}_last_open`);
+                return null;
+            }
+
+            const remaining = cooldown - elapsed;
+            return remaining;
+        }
+
+        function startTimerUpdates() {
+            setInterval(() => {
+                cases.forEach(caseItem => {
+                    if (caseItem.isFree) {
+                        const remaining = updateTimer(caseItem.id);
+                        const timerEl = document.getElementById(`timer_${caseItem.id}`);
+                        if (timerEl) {
+                            if (remaining && remaining > 0) {
+                                timerEl.textContent = formatTime(remaining);
+                                timerEl.style.display = 'inline-block';
+                                document.getElementById(`price_${caseItem.id}`).style.display = 'none';
+                            } else {
+                                timerEl.style.display = 'none';
+                                document.getElementById(`price_${caseItem.id}`).style.display = 'inline-flex';
+                            }
+                        }
+                    }
+                });
+            }, 1000);
+        }
+
+        function renderCases() {
+            const grid = document.getElementById('casesGrid');
+            grid.innerHTML = '';
+
+            cases.forEach(caseItem => {
+                const remaining = caseItem.isFree ? updateTimer(caseItem.id) : null;
+                const isLocked = remaining && remaining > 0;
+
+                const card = document.createElement('div');
+                card.className = 'case-card';
+                card.onclick = () => openCase(caseItem.id);
+
+                card.innerHTML = `
+                    ${caseItem.isFree ? '<div class="free-badge">FREE</div>' : ''}
+                    <div class="case-image">${caseItem.emoji}</div>
+                    <div class="case-name">${caseItem.name}</div>
+                    <div class="case-price" id="price_${caseItem.id}" style="display: ${isLocked ? 'none' : 'inline-flex'}">
+                        ${caseItem.price > 0 ? `${caseItem.price} ⭐` : 'Открыть'}
+                    </div>
+                    ${caseItem.isFree ? `<div class="case-timer" id="timer_${caseItem.id}" style="display: ${isLocked ? 'inline-block' : 'none'}">${isLocked ? formatTime(remaining) : ''}</div>` : ''}
+                `;
+
+                grid.appendChild(card);
+            });
+        }
+
+        async function openCase(caseId) {
+            const caseData = cases.find(c => c.id === caseId);
+            
+            // Проверка таймера для бесплатного кейса
+            if (caseData.isFree) {
+                const remaining = updateTimer(caseId);
+                if (remaining && remaining > 0) {
+                    showNotification(`Подождите ${formatTime(remaining)}`);
+                    return;
+                }
+            }
+
+            // Проверка баланса
+            if (caseData.price > user.balance) {
+                showNotification('Недостаточно звёзд!');
+                if (tg.showAlert) {
+                    tg.showAlert('Недостаточно звёзд для открытия этого кейса!');
+                }
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/open-case`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        telegram_id: user.telegram_id,
+                        case_id: caseId,
+                        price: caseData.price,
+                        reward: caseData.reward
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Ошибка открытия кейса');
+                }
+
+                const updatedUser = await response.json();
+                user = updatedUser;
+                
+                // Обновляем баланс
+                document.getElementById('balance').textContent = user.balance;
+
+                // Показываем награду
+                showRewardAnimation(caseData.reward);
+                showNotification(`Вы получили ${caseData.reward} ⭐`);
+
+                // Устанавливаем таймер для бесплатного кейса
+                if (caseData.isFree) {
+                    localStorage.setItem(`case_${caseId}_last_open`, Date.now().toString());
+                }
+
+                // Перерисовываем кейсы
+                renderCases();
+
+            } catch (error) {
+                console.error('Ошибка открытия кейса:', error);
+                showNotification('Ошибка открытия кейса');
+            }
+        }
+
         async function loadProfile() {
             try {
                 const telegramUser = tg.initDataUnsafe?.user;
-                
-                // Для тестирования используем моковые данные, если нет Telegram
                 const userId = telegramUser?.id || 123456789;
                 const firstName = telegramUser?.first_name || 'Тестовый';
                 const lastName = telegramUser?.last_name || 'Пользователь';
 
-                console.log('📡 API URL:', API_URL);
-                console.log('📡 Загрузка профиля для:', userId);
-
-                const url = `${API_URL}/profile`;
-                console.log('📡 Full URL:', url);
-
-                const response = await fetch(url, {
+                const response = await fetch(`${API_URL}/profile`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -396,166 +458,31 @@
                     })
                 });
 
-                console.log('📡 Response status:', response.status);
-
                 if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error('📡 Error response:', errorText);
-                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                    throw new Error('Ошибка загрузки профиля');
                 }
 
                 user = await response.json();
-                console.log('✅ Профиль загружен:', user);
                 
-                displayProfile(user);
-                updateDebugInfo();
-                
+                // Обновляем UI
+                document.getElementById('balance').textContent = user.balance;
+                const firstLetter = user.first_name.charAt(0).toUpperCase();
+                document.getElementById('avatar').textContent = firstLetter;
+
+                // Рендерим кейсы
+                renderCases();
+                startTimerUpdates();
+
                 document.getElementById('loading').style.display = 'none';
                 document.getElementById('app').style.display = 'block';
 
-                // Инициализация AdSonar
-                initAdSonar();
             } catch (error) {
-                console.error('❌ Ошибка загрузки профиля:', error);
-                showError('Ошибка загрузки профиля: ' + error.message);
-                document.getElementById('loading').innerHTML = `
-                    <div>❌ Ошибка загрузки</div>
-                    <div style="font-size: 12px; margin-top: 10px;">
-                        API URL: ${API_URL}<br>
-                        ${error.message}
-                    </div>
-                `;
+                console.error('Ошибка загрузки профиля:', error);
+                document.getElementById('loading').innerHTML = '<div>❌ Ошибка загрузки</div>';
             }
         }
 
-        // Отображение профиля
-        function displayProfile(userData) {
-            const fullName = `${userData.first_name} ${userData.last_name || ''}`.trim();
-            document.getElementById('userName').textContent = fullName;
-            document.getElementById('userId').textContent = userData.telegram_id;
-            document.getElementById('balance').textContent = userData.balance || 0;
-            document.getElementById('adsWatched').textContent = userData.ads_watched || 0;
-            document.getElementById('totalEarned').textContent = userData.balance || 0;
-            
-            // Аватар с первой буквой имени
-            const firstLetter = userData.first_name.charAt(0).toUpperCase();
-            document.getElementById('avatar').textContent = firstLetter;
-
-            console.log('✅ Профиль отображён');
-        }
-
-        // Инициализация AdSonar
-        function initAdSonar() {
-            const ADSONAR_BLOCK_ID = 'YOUR_ADSONAR_BLOCK_ID';
-            
-            try {
-                if (window.AdController) {
-                    console.log('✅ AdSonar SDK загружен');
-                } else {
-                    console.warn('⚠️ AdSonar SDK не загружен, используется тестовый режим');
-                }
-            } catch (error) {
-                console.error('❌ Ошибка инициализации AdSonar:', error);
-            }
-        }
-
-        // Просмотр рекламы через AdSonar
-        async function watchAd() {
-            const btn = document.getElementById('watchAdBtn');
-            btn.disabled = true;
-            btn.innerHTML = '<span>⏳</span><span>Загрузка рекламы...</span>';
-
-            try {
-                const ADSONAR_BLOCK_ID = 'YOUR_ADSONAR_BLOCK_ID';
-
-                if (window.AdController) {
-                    console.log('📺 Показываем рекламу через AdSonar...');
-                    
-                    window.AdController.show({
-                        blockId: ADSONAR_BLOCK_ID,
-                        onReward: async () => {
-                            console.log('✅ Реклама просмотрена, начисляем награду');
-                            await handleAdReward();
-                        },
-                        onClose: () => {
-                            console.log('❌ Реклама закрыта');
-                            btn.disabled = false;
-                            btn.innerHTML = '<span>📺</span><span>Смотреть рекламу (+1 ⭐)</span>';
-                        },
-                        onError: (error) => {
-                            console.error('❌ AdSonar error:', error);
-                            showError('Реклама недоступна. Попробуйте позже.');
-                            btn.disabled = false;
-                            btn.innerHTML = '<span>📺</span><span>Смотреть рекламу (+1 ⭐)</span>';
-                        }
-                    });
-                } else {
-                    // Симуляция для тестирования без AdSonar
-                    console.log('🧪 Тестовый режим: симуляция просмотра рекламы');
-                    await new Promise(resolve => setTimeout(resolve, 2000));
-                    await handleAdReward();
-                    btn.disabled = false;
-                    btn.innerHTML = '<span>📺</span><span>Смотреть рекламу (+1 ⭐)</span>';
-                }
-            } catch (error) {
-                console.error('❌ Ошибка при просмотре рекламы:', error);
-                showError('Ошибка при просмотре рекламы: ' + error.message);
-                btn.disabled = false;
-                btn.innerHTML = '<span>📺</span><span>Смотреть рекламу (+1 ⭐)</span>';
-            }
-        }
-
-        // Обработка награды за рекламу
-        async function handleAdReward() {
-            try {
-                console.log('💰 Начисляем награду для:', user.telegram_id);
-
-                const url = `${API_URL}/watch-ad`;
-                console.log('📡 Watch ad URL:', url);
-
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        telegram_id: user.telegram_id
-                    })
-                });
-
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(`HTTP ${response.status}: ${errorText}`);
-                }
-
-                const updatedUser = await response.json();
-                console.log('✅ Награда начислена:', updatedUser);
-                
-                user = updatedUser;
-                displayProfile(user);
-                
-                // Показываем анимацию
-                showRewardAnimation();
-                showSuccess('Поздравляем! Вы получили 1 ⭐');
-                
-                // Показываем уведомление в Telegram
-                if (tg.showAlert) {
-                    tg.showAlert('🎉 Поздравляем! Вы получили 1 ⭐');
-                }
-            } catch (error) {
-                console.error('❌ Ошибка начисления награды:', error);
-                showError('Ошибка начисления награды: ' + error.message);
-            }
-        }
-
-        // События
-        document.getElementById('watchAdBtn').addEventListener('click', watchAd);
-
-        // Инициализация приложения
-        console.log('🚀 Инициализация приложения...');
-        console.log('📍 Window location:', window.location.href);
-        console.log('📍 Hostname:', window.location.hostname);
-        console.log('📍 API URL:', API_URL);
+        // Инициализация
         loadProfile();
     </script>
 </body>
