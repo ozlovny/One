@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cases App</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--tg-theme-bg-color, #0f0f0f);
+            color: var(--tg-theme-text-color, #ffffff);
+            overflow-x: hidden;
+            position: relative;
+            min-height: 100vh;
+        }
+
+        .page {
+            display: none;
+            padding: 16px;
+            padding-bottom: 80px;
+            min-height: 100vh;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            padding: 16px;
+            background: var(--tg-theme-secondary-bg-color, rgba(255,255,255,0.05));
+            border-radius: 16px;
+        }
+
+        .balance-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .balance {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .star-img {
+            width: 32px;
+            height: 32px;
+        }
+
+        .add-balance-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--tg-theme-button-color, #3390ec);
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--tg-theme-button-color, #3390ec) 0%, #667eea 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: bold;
+            color: white;
+        }
+
+        /* Cases Grid */
+        .cases-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .case-card {
+            background: var(--tg-theme-secondary-bg-color, rgba(255,255,255,0.05));
+            border-radius: 16px;
+            padding: 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+            position: relative;
+        }
+
+        .case-card:active {
+            transform: scale(0.98);
+        }
+
+        .case-image-container {
+            width: 100%;
+            height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
+            border-radius: 12px;
+        }
+
+        .case-image {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+        }
+
+        .case-name {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .case-price {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            background: var(--tg-theme-button-color, #3390ec);
+            color: white;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .case-timer {
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .free-badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: linear-gradient(135deg, #00c853 0%, #00e676 100%);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        /* Opening Page */
+        .opening-container {
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 80px);
+        }
+
+        .opening-header {
+            padding: 16px;
+            text-align: center;
+        }
+
+        .opening-case-name {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .opening-case-price {
+            font-size: 18px;
+            opacity: 0.7;
+        }
+
+        .roulette-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .roulette-wrapper {
+            position: relative;
+            height: 200px;
+        }
+
+        .roulette-track {
+            display: flex;
+            gap: 12px;
+            padding: 20px;
+            transition: transform 5s cubic-bezier(0.15, 0.85, 0.35, 1);
+            will-change: transform;
+        }
+
+        .roulette-item {
+            min-width: 140px;
+            height: 160px;
+            background: var(--tg-theme-secondary-bg-color, rgba(255,255,255,0.05));
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid rgba(255,255,255,0.1);
+        }
+
+        .roulette-item-image {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+            margin-bottom: 8px;
+        }
+
+        .roulette-item-name {
+            font-size: 12px;
+            text-align: center;
+            word-break: break-word;
+        }
+
+        .roulette-selector {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 3px;
+            height: 180px;
+            background: var(--tg-theme-button-color, #3390ec);
+            pointer-events: none;
+            z-index: 10;
+            box-shadow: 0 0 20px var(--tg-theme-button-color, #3390ec);
+        }
+
+        .open-button {
+            width: calc(100% - 32px);
+            margin: 0 16px 16px;
+            padding: 16px;
+            background: var(--tg-theme-button-color, #3390ec);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .open-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Prize Modal */
+        .prize-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(10px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .prize-modal.show {
+            display: flex;
+        }
+
+        .prize-content {
+            background: var(--tg-theme-secondary-bg-color, rgba(255,255,255,0.1));
+            border-radius: 24px;
+            padding: 32px;
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .prize-image {
+            width: 150px;
+            height: 150px;
+            object-fit: contain;
+            margin-bottom: 16px;
+        }
+
+        .prize-name {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 24px;
+        }
+
+        .claim-button {
+            width: 100%;
+            padding: 16px;
+            background: var(--tg-theme-button-color, #3390ec);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* Profile Page */
+        .profile-header {
+            text-align: center;
+            padding: 24px;
+            background: var(--tg-theme-secondary-bg-color, rgba(255,255,255,0.05));
+            border-radius: 16px;
+            margin-bottom: 24px;
+        }
+
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--tg-theme-button-color, #3390ec) 0%, #667eea 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            font-weight: bold;
+            color: white;
+            margin: 0 auto 16px;
+        }
+
+        .profile-name {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .profile-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--tg-theme-secondary-bg-color, rgba(255,255,255,0.05));
+            padding: 16px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            opacity: 0.7;
+        }
+
+        .inventory-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 16px;
+        }
+
+        .inventory-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .inventory-item {
+            background: var(--tg-theme-secondary-bg-color, rgba(255,255,255,0.05));
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .inventory-item-image {
+            width: 60px;
+            height: 60px;
+            object-fit: contain;
+            margin-bottom: 8px;
+        }
+
+        .inventory-item-name {
+            font-size: 11px;
+            word-break: break-word;
+        }
+
+        /* Bottom Nav */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--tg-theme-secondary-bg-color, rgba(0,0,0,0.95));
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 0;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .nav-button {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            background: none;
+            border: none;
+            color: var(--tg-theme-hint-color, #aaaaaa);
+            cursor: pointer;
+            padding: 8px 24px;
+            transition: color 0.2s;
+        }
+
+        .nav-button.active {
+            color: var(--tg-theme-button-color, #3390ec);
+        }
+
+        .nav-icon {
+            font-size: 24px;
+        }
+
+        .nav-label {
+            font-size: 12px;
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-left-color: var(--tg-theme-button-color, #3390ec);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--tg-theme-button-color, #3390ec);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            z-index: 1000;
+            display: none;
+        }
+
+        .notification.show {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -20px);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, 0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="loading" class="loading">
+        <div class="loading-spinner"></div>
+        <div>Загрузка...</div>
+    </div>
+
+    <div id="notification" class="notification"></div>
+
+    <!-- Cases Page -->
+    <div id="casesPage" class="page">
+        <div class="header">
+            <div class="balance-section">
+                <div class="balance">
+                    <span id="balance">0</span>
+                    <img src="https://img.icons8.com/fluency/96/star.png" alt="star" class="star-img">
+                </div>
+                <button class="add-balance-btn" onclick="addBalance()">+</button>
+            </div>
+            <div class="avatar" id="avatar">U</div>
+        </div>
+        <div class="cases-grid" id="casesGrid"></div>
+    </div>
+
+    <!-- Opening Page -->
+    <div id="openingPage" class="page">
+        <div class="opening-container">
+            <div class="opening-header">
+                <div class="opening-case-name" id="openingCaseName"></div>
+                <div class="opening-case-price" id="openingCasePrice"></div>
+            </div>
+            <div class="roulette-container">
+                <div class="roulette-wrapper">
+                    <div class="roulette-selector"></div>
+                    <div class="roulette-track" id="rouletteTrack"></div>
+                </div>
+            </div>
+            <button class="open-button" id="openButton" onclick="spinRoulette()">Открыть</button>
+        </div>
+    </div>
+
+    <!-- Profile Page -->
+    <div id="profilePage" class="page">
+        <div class="profile-header">
+            <div class="profile-avatar" id="profileAvatar">U</div>
+            <div class="profile-name" id="profileName">Пользователь</div>
+        </div>
+        <div class="profile-stats">
+            <div class="stat-card">
+                <div class="stat-value" id="profileBalance">0</div>
+                <div class="stat-label">Баланс ⭐</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="profileCasesOpened">0</div>
+                <div class="stat-label">Кейсов открыто</div>
+            </div>
+        </div>
+        <div class="inventory-title">Инвентарь</div>
+        <div class="inventory-grid" id="inventoryGrid"></div>
+    </div>
+
+    <!-- Prize Modal -->
+    <div class="prize-modal" id="prizeModal">
+        <div class="prize-content">
+            <img id="prizeImage" class="prize-image" src="" alt="Prize">
+            <div class="prize-name" id="prizeName"></div>
+            <button class="claim-button" onclick="claimPrize()">Забрать</button>
+        </div>
+    </div>
+
+    <!-- Bottom Nav -->
+    <div class="bottom-nav">
+        <button class="nav-button active" onclick="showPage('cases')">
+            <div class="nav-icon">🎁</div>
+            <div class="nav-label">Кейсы</div>
+        </button>
+        <button class="nav-button" onclick="showPage('profile')">
+            <div class="nav-icon">👤</div>
+            <div class="nav-label">Профиль</div>
+        </button>
+    </div>
+
+    <script>
+        const RAILWAY_API_URL = 'https://one-production-9063.up.railway.app/api';
+        
+        function getApiUrl() {
+            const hostname = window.location.hostname;
+            if (hostname === 'localhost' || hostname === '127.0.0.1') {
+                return 'http://localhost:3000/api';
+            }
+            return RAILWAY_API_URL;
+        }
+        
+        const API_URL = getApiUrl();
+        let tg = window.Telegram.WebApp;
+        let user = null;
+        let currentCase = null;
+        let currentRoulette = null;
+        let isSpinning = false;
+
+        tg.ready();
+        tg.expand();
+
+        function showNotification(message) {
+            const notif = document.getElementById('notification');
+            notif.textContent = message;
+            notif.classList.add('show');
+            setTimeout(() => {
+                notif.classList.remove('show');
+            }, 3000);
+        }
+
+        function showPage(page) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-button').forEach(b => b.classList.remove('active'));
+            
+            if (page === 'cases') {
+                document.getElementById('casesPage').classList.add('active');
+                document.querySelectorAll('.nav-button')[0].classList.add('active');
+                renderCases();
+            } else if (page === 'profile') {
+                document.getElementById('profilePage').classList.add('active');
+                document.querySelectorAll('.nav-button')[1].classList.add('active');
+                loadProfile();
+            }
+        }
+
+        async function renderCases() {
+            try {
+                const response = await fetch(`${API_URL}/cases`);
+                const cases = await response.json();
+                
+                const grid = document.getElementById('casesGrid');
+                grid.innerHTML = '';
+
+                cases.forEach(caseItem => {
+                    const card = document.createElement('div');
+                    card.className = 'case-card';
+                    card.onclick = () => openCasePage(caseItem);
+
+                    card.innerHTML = `
+                        ${caseItem.is_free ? '<div class="free-badge">FREE</div>' : ''}
+                        <div class="case-image-container">
+                            <img src="${caseItem.image}" alt="${caseItem.name}" class="case-image">
+                        </div>
+                        <div class="case-name">${caseItem.name}</div>
+                        <div class="case-price">
+                            ${caseItem.price > 0 ? caseItem.price + ' ⭐' : 'Открыть'}
+                        </div>
+                    `;
+
+                    grid.appendChild(card);
+                });
+            } catch (error) {
+                console.error('Ошибка загрузки кейсов:', error);
+            }
+        }
+
+        function openCasePage(caseData) {
+            currentCase = caseData;
+            document.getElementById('openingCaseName').textContent = caseData.name;
+            document.getElementById('openingCasePrice').textContent = 
+                caseData.price > 0 ? `${caseData.price} ⭐` : 'Бесплатно';
+            
+            showPage('opening');
+            document.querySelectorAll('.nav-button').forEach(b => b.classList.remove('active'));
+            
+            prepareRoulette(caseData);
+        }
+
+        async function prepareRoulette(caseData) {
+            try {
+                const response = await fetch(`${API_URL}/prepare-opening`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        telegram_id: user.telegram_id,
+                        case_id: caseData.id
+                    })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    showNotification(error.error);
+                    showPage('cases');
+                    return;
+                }
+
+                currentRoulette = await response.json();
+                renderRoulette();
+            } catch (error) {
+                console.error('Ошибка подготовки:', error);
+                showNotification('Ошибка подготовки');
+                showPage('cases');
+            }
+        }
+
+        function renderRoulette() {
+            const track = document.getElementById('rouletteTrack');
+            track.innerHTML = '';
+            track.style.transform = 'translateX(0)';
+
+            currentRoulette.items.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'roulette-item';
+                div.innerHTML = `
+                    <img src="${item.image}" alt="${item.name}" class="roulette-item-image">
+                    <div class="roulette-item-name">${item.name}</div>
+                `;
+                track.appendChild(div);
+            });
+        }
+
+        async function spinRoulette() {
+            if (isSpinning) return;
+            
+            isSpinning = true;
+            document.getElementById('openButton').disabled = true;
+
+            try {
+                const response = await fetch(`${API_URL}/open-case`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        telegram_id: user.telegram_id,
+                        case_id: currentCase.id,
+                        session_id: currentRoulette.session_id
+                    })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    showNotification(error.error);
+                    isSpinning = false;
+                    document.getElementById('openButton').disabled = false;
+                    return;
+                }
+
+                const result = await response.json();
+                user = result.user;
+                
+                // Обновляем баланс
+                document.getElementById('balance').textContent = user.balance;
+
+                // Анимация прокрутки
+                const track = document.getElementById('rouletteTrack');
+                const itemWidth = 152; // 140px + 12px gap
+                const centerOffset = window.innerWidth / 2 - itemWidth / 2;
+                const winningOffset = result.winning_index * itemWidth;
+                const finalOffset = -(winningOffset - centerOffset) - (Math.random() * 20 - 10);
+
+                track.style.transition = 'transform 5s cubic-bezier(0.15, 0.85, 0.35, 1)';
+                track.style.transform = `translateX(${finalOffset}px)`;
+
+                setTimeout(() => {
+                    showPrizeModal(result.prize);
+                    isSpinning = false;
+                }, 5000);
+
+            } catch (error) {
+                console.error('Ошибка открытия:', error);
+                showNotification('Ошибка открытия кейса');
+                isSpinning = false;
+                document.getElementById('openButton').disabled = false;
+            }
+        }
+
+        function showPrizeModal(prize) {
+            document.getElementById('prizeImage').src = prize.image;
+            document.getElementById('prizeName').textContent = prize.name;
+            document.getElementById('prizeModal').classList.add('show');
+        }
+
+        function claimPrize() {
+            document.getElementById('prizeModal').classList.remove('show');
+            showPage('cases');
+            document.getElementById('openButton').disabled = false;
+        }
+
+        async function loadProfile() {
+            try {
+                const response = await fetch(`${API_URL}/profile/${user.telegram_id}`);
+                const data = await response.json();
+                
+                document.getElementById('profileAvatar').textContent = data.first_name.charAt(0).toUpperCase();
+                document.getElementById('profileName').textContent = `${data.first_name} ${data.last_name || ''}`.trim();
+                document.getElementById('profileBalance').textContent = data.balance;
+                document.getElementById('profileCasesOpened').textContent = data.cases_opened || 0;
+
+                // Инвентарь
+                const grid = document.getElementById('inventoryGrid');
+                grid.innerHTML = '';
+
+                if (data.inventory && data.inventory.length > 0) {
+                    data.inventory.forEach(item => {
+                        const div = document.createElement('div');
+                        div.className = 'inventory-item';
+                        div.innerHTML = `
+                            <img src="${item.image}" alt="${item.name}" class="inventory-item-image">
+                            <div class="inventory-item-name">${item.name}</div>
+                        `;
+                        grid.appendChild(div);
+                    });
+                } else {
+                    grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; opacity: 0.5;">Инвентарь пуст</div>';
+                }
+            } catch (error) {
+                console.error('Ошибка загрузки профиля:', error);
+            }
+        }
+
+        async function addBalance() {
+            try {
+                const response = await fetch(`${API_URL}/add-balance`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        telegram_id: user.telegram_id,
+                        amount: 100
+                    })
+                });
+
+                const data = await response.json();
+                user.balance = data.balance;
+                document.getElementById('balance').textContent = data.balance;
+                showNotification('+100 ⭐');
+            } catch (error) {
+                console.error('Ошибка добавления баланса:', error);
+            }
+        }
+
+        async function init() {
+            try {
+                const telegramUser = tg.initDataUnsafe?.user;
+                const userId = telegramUser?.id || 123456789;
+                const firstName = telegramUser?.first_name || 'Тестовый';
+                const lastName = telegramUser?.last_name || 'Пользователь';
+
+                const response = await fetch(`${API_URL}/init`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        telegram_id: userId,
+                        first_name: firstName,
+                        last_name: lastName
+                    })
+                });
+
+                user = await response.json();
+                
+                document.getElementById('balance').textContent = user.balance;
+                document.getElementById('avatar').textContent = user.first_name.charAt(0).toUpperCase();
+
+                await renderCases();
+
+                document.getElementById('loading').style.display = 'none';
+                showPage('cases');
+
+            } catch (error) {
+                console.error('Ошибка инициализации:', error);
+                document.getElementById('loading').innerHTML = '<div>❌ Ошибка загрузки</div>';
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>
