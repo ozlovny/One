@@ -239,6 +239,15 @@
                 opacity: 0;
             }
         }
+
+        .debug-info {
+            background: #f0f0f0;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 12px;
+            font-family: monospace;
+        }
     </style>
 </head>
 <body>
@@ -251,6 +260,8 @@
         <div id="success" class="success"></div>
         
         <div id="app" style="display: none;">
+            <div class="debug-info" id="debugInfo"></div>
+            
             <div class="profile-card">
                 <div class="profile-header">
                     <div class="avatar" id="avatar">U</div>
@@ -288,10 +299,32 @@
     </div>
 
     <script>
-        // API URL - автоматически определяется
-        const API_URL = window.location.hostname === 'localhost' 
-            ? 'https://one-production-9063.up.railway.app/api'
-            : '/api';
+        // Определяем API URL правильно
+        function getApiUrl() {
+            const hostname = window.location.hostname;
+            const protocol = window.location.protocol;
+            const port = window.location.port;
+            
+            // Localhost
+            if (hostname === 'localhost' || hostname === '127.0.0.1') {
+                return 'http://localhost:3000/api';
+            }
+            
+            // Railway (обычно имеет .railway.app в домене)
+            if (hostname.includes('railway.app')) {
+                return `${protocol}//${hostname}/api`;
+            }
+            
+            // Netlify (обычно .netlify.app)
+            if (hostname.includes('netlify.app')) {
+                return `${protocol}//${hostname}/.netlify/functions/api`;
+            }
+            
+            // Для любого другого хостинга
+            return `${protocol}//${hostname}${port ? ':' + port : ''}/api`;
+        }
+        
+        const API_URL = getApiUrl();
         
         let tg = window.Telegram.WebApp;
         let user = null;
@@ -299,6 +332,19 @@
         // Инициализация Telegram WebApp
         tg.ready();
         tg.expand();
+
+        // Debug info
+        function updateDebugInfo() {
+            const debugEl = document.getElementById('debugInfo');
+            if (debugEl) {
+                debugEl.innerHTML = `
+                    <strong>Debug Info:</strong><br>
+                    API URL: ${API_URL}<br>
+                    Hostname: ${window.location.hostname}<br>
+                    Protocol: ${window.location.protocol}
+                `;
+            }
+        }
 
         // Функция для показа ошибок
         function showError(message) {
@@ -341,9 +387,13 @@
                 const firstName = telegramUser?.first_name || 'Тестовый';
                 const lastName = telegramUser?.last_name || 'Пользователь';
 
+                console.log('📡 API URL:', API_URL);
                 console.log('📡 Загрузка профиля для:', userId);
 
-                const response = await fetch(`${API_URL}/profile`, {
+                const url = `${API_URL}/profile`;
+                console.log('📡 Full URL:', url);
+
+                const response = await fetch(url, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -355,14 +405,19 @@
                     })
                 });
 
+                console.log('📡 Response status:', response.status);
+
                 if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    const errorText = await response.text();
+                    console.error('📡 Error response:', errorText);
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
                 }
 
                 user = await response.json();
                 console.log('✅ Профиль загружен:', user);
                 
                 displayProfile(user);
+                updateDebugInfo();
                 
                 document.getElementById('loading').style.display = 'none';
                 document.getElementById('app').style.display = 'block';
@@ -372,7 +427,13 @@
             } catch (error) {
                 console.error('❌ Ошибка загрузки профиля:', error);
                 showError('Ошибка загрузки профиля: ' + error.message);
-                document.getElementById('loading').innerHTML = '<div>❌ Ошибка загрузки</div><div style="font-size: 12px; margin-top: 10px;">Проверьте консоль для деталей</div>';
+                document.getElementById('loading').innerHTML = `
+                    <div>❌ Ошибка загрузки</div>
+                    <div style="font-size: 12px; margin-top: 10px;">
+                        API URL: ${API_URL}<br>
+                        ${error.message}
+                    </div>
+                `;
             }
         }
 
@@ -394,7 +455,6 @@
 
         // Инициализация AdSonar
         function initAdSonar() {
-            // ВАЖНО: Замените на ваш реальный Block ID из AdSonar панели
             const ADSONAR_BLOCK_ID = 'YOUR_ADSONAR_BLOCK_ID';
             
             try {
@@ -459,7 +519,10 @@
             try {
                 console.log('💰 Начисляем награду для:', user.telegram_id);
 
-                const response = await fetch(`${API_URL}/watch-ad`, {
+                const url = `${API_URL}/watch-ad`;
+                console.log('📡 Watch ad URL:', url);
+
+                const response = await fetch(url, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -470,7 +533,8 @@
                 });
 
                 if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    const errorText = await response.text();
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
                 }
 
                 const updatedUser = await response.json();
@@ -496,10 +560,11 @@
         // События
         document.getElementById('watchAdBtn').addEventListener('click', watchAd);
 
-        // Загрузка AdSonar SDK
-        // ВАЖНО: Свяжитесь с @adsonar_manager в Telegram для получения SDK
+        // НЕ загружаем AdSonar SDK пока не получим правильный URL
+        // Раскомментируйте когда получите настоящий SDK от AdSonar
+        /*
         const adsScript = document.createElement('script');
-        adsScript.src = 'https://ad.adsonar.co/sdk.js'; // Уточните актуальный URL
+        adsScript.src = 'https://ad.adsonar.co/sdk.js';
         adsScript.async = true;
         adsScript.onload = () => {
             console.log('✅ AdSonar SDK загружен');
@@ -508,11 +573,14 @@
             console.warn('⚠️ AdSonar SDK не загружен, используется тестовый режим');
         };
         document.head.appendChild(adsScript);
+        */
 
         // Инициализация приложения
         console.log('🚀 Инициализация приложения...');
+        console.log('📍 Window location:', window.location.href);
+        console.log('📍 Hostname:', window.location.hostname);
         console.log('📍 API URL:', API_URL);
         loadProfile();
     </script>
 </body>
-</html>
+    </html>
