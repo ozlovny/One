@@ -679,4 +679,186 @@
                     const error = await response.json();
                     showNotification(error.error);
                     showPage('cases');
-                    r
+                    return;
+                }
+
+                currentRoulette = await response.json();
+                renderRoulette();
+            } catch (error) {
+                console.error('Ошибка подготовки:', error);
+                showNotification('Ошибка подготовки');
+                showPage('cases');
+            }
+        }
+
+        function renderRoulette() {
+            const track = document.getElementById('rouletteTrack');
+            track.innerHTML = '';
+            track.style.transform = 'translateX(0)';
+
+            currentRoulette.items.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'roulette-item';
+                div.innerHTML = `
+                    <img src="${item.image}" alt="${item.name}" class="roulette-item-image">
+                    <div class="roulette-item-name">${item.name}</div>
+                `;
+                track.appendChild(div);
+            });
+        }
+
+        async function spinRoulette() {
+            if (isSpinning) return;
+            
+            isSpinning = true;
+            document.getElementById('openButton').disabled = true;
+
+            try {
+                const response = await fetch(`${API_URL}/open-case`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        telegram_id: user.telegram_id,
+                        case_id: currentCase.id,
+                        session_id: currentRoulette.session_id
+                    })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    showNotification(error.error);
+                    isSpinning = false;
+                    document.getElementById('openButton').disabled = false;
+                    return;
+                }
+
+                const result = await response.json();
+                user = result.user;
+                
+                // Обновляем баланс
+                document.getElementById('balance').textContent = user.balance;
+
+                // Анимация прокрутки
+                const track = document.getElementById('rouletteTrack');
+                const itemWidth = 152; // 140px + 12px gap
+                const centerOffset = window.innerWidth / 2 - itemWidth / 2;
+                const winningOffset = result.winning_index * itemWidth;
+                const finalOffset = -(winningOffset - centerOffset) - (Math.random() * 20 - 10);
+
+                track.style.transition = 'transform 5s cubic-bezier(0.15, 0.85, 0.35, 1)';
+                track.style.transform = `translateX(${finalOffset}px)`;
+
+                setTimeout(() => {
+                    showPrizeModal(result.prize);
+                    isSpinning = false;
+                }, 5000);
+
+            } catch (error) {
+                console.error('Ошибка открытия:', error);
+                showNotification('Ошибка открытия кейса');
+                isSpinning = false;
+                document.getElementById('openButton').disabled = false;
+            }
+        }
+
+        function showPrizeModal(prize) {
+            document.getElementById('prizeImage').src = prize.image;
+            document.getElementById('prizeName').textContent = prize.name;
+            document.getElementById('prizeModal').classList.add('show');
+        }
+
+        function claimPrize() {
+            document.getElementById('prizeModal').classList.remove('show');
+            showPage('cases');
+            document.getElementById('openButton').disabled = false;
+        }
+
+        async function loadProfile() {
+            try {
+                const response = await fetch(`${API_URL}/profile/${user.telegram_id}`);
+                const data = await response.json();
+                
+                document.getElementById('profileAvatar').textContent = data.first_name.charAt(0).toUpperCase();
+                document.getElementById('profileName').textContent = `${data.first_name} ${data.last_name || ''}`.trim();
+                document.getElementById('profileBalance').textContent = data.balance;
+                document.getElementById('profileCasesOpened').textContent = data.cases_opened || 0;
+
+                // Инвентарь
+                const grid = document.getElementById('inventoryGrid');
+                grid.innerHTML = '';
+
+                if (data.inventory && data.inventory.length > 0) {
+                    data.inventory.forEach(item => {
+                        const div = document.createElement('div');
+                        div.className = 'inventory-item';
+                        div.innerHTML = `
+                            <img src="${item.image}" alt="${item.name}" class="inventory-item-image">
+                            <div class="inventory-item-name">${item.name}</div>
+                        `;
+                        grid.appendChild(div);
+                    });
+                } else {
+                    grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; opacity: 0.5;">Инвентарь пуст</div>';
+                }
+            } catch (error) {
+                console.error('Ошибка загрузки профиля:', error);
+            }
+        }
+
+        async function addBalance() {
+            try {
+                const response = await fetch(`${API_URL}/add-balance`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        telegram_id: user.telegram_id,
+                        amount: 100
+                    })
+                });
+
+                const data = await response.json();
+                user.balance = data.balance;
+                document.getElementById('balance').textContent = data.balance;
+                showNotification('+100 ⭐');
+            } catch (error) {
+                console.error('Ошибка добавления баланса:', error);
+            }
+        }
+
+        async function init() {
+            try {
+                const telegramUser = tg.initDataUnsafe?.user;
+                const userId = telegramUser?.id || 123456789;
+                const firstName = telegramUser?.first_name || 'Тестовый';
+                const lastName = telegramUser?.last_name || 'Пользователь';
+
+                const response = await fetch(`${API_URL}/init`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        telegram_id: userId,
+                        first_name: firstName,
+                        last_name: lastName
+                    })
+                });
+
+                user = await response.json();
+                
+                document.getElementById('balance').textContent = user.balance;
+                document.getElementById('avatar').textContent = user.first_name.charAt(0).toUpperCase();
+
+                await renderCases();
+
+                document.getElementById('loading').style.display = 'none';
+                showPage('cases');
+
+            } catch (error) {
+                console.error('Ошибка инициализации:', error);
+                document.getElementById('loading').innerHTML = '<div>❌ Ошибка загрузки</div>';
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>
