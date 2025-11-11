@@ -61,7 +61,7 @@ const FREE_PRIZES = [
     {id: 20, name: 'Unicorn', image: 'https://img.icons8.com/fluency/96/unicorn.png', chance: 3},
     {id: 21, name: 'Dragon', image: 'https://img.icons8.com/fluency/96/dragon.png', chance: 3},
     {id: 22, name: 'Phoenix', image: 'https://img.icons8.com/fluency/96/phoenix.png', chance: 2},
-    {id: 23, name: 'Wizard Hat', image: 'https://img.icons8.com/fluency/96/wizard.png', chance: 2},
+    {id: 23, name: 'Star Notepad', image: 'https://i.postimg.cc/j5vbrhz1/gifts-emoji-by-gifts-changes-bot-Ag-AD4m0AArs-TWEo.webp', chance: 2},
     {id: 24, name: 'Lol Pop', image: 'https://i.postimg.cc/jdhnWVR2/gifts-emoji-by-gifts-changes-bot-Ag-ADGV8AAl-H5SEk.webp', chance: 1},
     {id: 25, name: 'B-day candle', image: 'https://i.postimg.cc/fRRWpczw/gifts-emoji-by-gifts-changes-bot-Ag-ADYVUAAgyt-UEk-ezgif-com-gif-maker.webp', chance: 24}
 ];
