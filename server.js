@@ -71,7 +71,7 @@ const CASES = [
     {
         id: 'free',
         name: 'Free Box',
-        image: 'https://img.icons8.com/fluency/96/gift-box.png',
+        image: 'https://i.postimg.cc/Jnh26RHZ/DMJDuck-X2-Ag-ADj-A8AAqo-AAUl-S.webp',
         price: 0,
         is_free: true,
         prizes: FREE_PRIZES
@@ -79,7 +79,7 @@ const CASES = [
     {
         id: 'basic',
         name: 'Basic Case',
-        image: 'https://img.icons8.com/fluency/96/box.png',
+        image: 'https://i.postimg.cc/T3fMjM0r/DMJEmoji-Premium-Ag-ADx-Qs-AAh-Qp0VM.webp',
         price: 50,
         is_free: false,
         prizes: FREE_PRIZES
@@ -87,7 +87,7 @@ const CASES = [
     {
         id: 'premium',
         name: 'Premium Case',
-        image: 'https://img.icons8.com/fluency/96/treasure-chest.png',
+        image: 'https://i.postimg.cc/T3fMjM0r/DMJEmoji-Premium-Ag-ADx-Qs-AAh-Qp0VM.webp',
         price: 150,
         is_free: false,
         prizes: FREE_PRIZES
@@ -95,7 +95,7 @@ const CASES = [
     {
         id: 'legendary',
         name: 'Legendary Case',
-        image: 'https://img.icons8.com/fluency/96/crown.png',
+        image: 'https://i.postimg.cc/CxFXBCM2/DMJEmoji-Premium-Ag-ADyw8AAk-DL0FM.webp',
         price: 300,
         is_free: false,
         prizes: FREE_PRIZES
