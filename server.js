@@ -87,7 +87,7 @@ const CASES = [
     {
         id: 'premium',
         name: 'Premium Case',
-        image: 'https://i.postimg.cc/T3fMjM0r/DMJEmoji-Premium-Ag-ADx-Qs-AAh-Qp0VM.webp',
+        image: 'https://i.postimg.cc/ZRCh98Ht/DMJEmoji-Premium-Ag-AD9g0AAj-GJ0VM.webp',
         price: 150,
         is_free: false,
         prizes: FREE_PRIZES
