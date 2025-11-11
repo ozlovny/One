@@ -63,7 +63,7 @@ const FREE_PRIZES = [
     {id: 22, name: 'Phoenix', image: 'https://img.icons8.com/fluency/96/phoenix.png', chance: 2},
     {id: 23, name: 'Wizard Hat', image: 'https://img.icons8.com/fluency/96/wizard.png', chance: 2},
     {id: 24, name: 'Legendary Sword', image: 'https://img.icons8.com/fluency/96/sword.png', chance: 1},
-    {id: 25, name: 'Jackpot!', image: 'https://img.icons8.com/fluency/96/jackpot.png', chance: 24}
+    {id: 25, name: 'Jackpot!', image: 'https://github.com/ozlovny/One/blob/main/Bday-calendar.webm', chance: 24}
 ];
 
 // Кейсы
