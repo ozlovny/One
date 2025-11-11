@@ -39,7 +39,7 @@ loadDB();
 
 // Призы для Free кейса (25 призов)
 const FREE_PRIZES = [
-    {id: 1, name: 'Plush Pepe', image: 'https://img.icons8.com/fluency/96/frog.png', chance: 2},
+    {id: 1, name: 'Plush Pepe', image: 'https://i.postimg.cc/43FrytRb/gifts-emoji-by-gifts-changes-bot-Ag-ADp-WAAAh80YUo.webp', chance: 2},
     {id: 2, name: 'Rare Doge', image: 'https://img.icons8.com/fluency/96/doge.png', chance: 3},
     {id: 3, name: 'Crypto Cat', image: 'https://img.icons8.com/fluency/96/cat.png', chance: 4},
     {id: 4, name: 'Moon Rocket', image: 'https://img.icons8.com/fluency/96/rocket.png', chance: 4},
